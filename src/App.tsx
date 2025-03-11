@@ -9,15 +9,59 @@ function App() {
   const [base, setBase] = useState<number>(2);
   const [target, setTarget] = useState<number>(8);
   const [showCommonPrimes, setShowCommonPrimes] = useState<boolean>(false);
-
-  // These would typically come from API calls
-  const primeValid = prime > 1;
-  const primitiveRoots = [2, 6, 7, 11];
-  const discreteLogResult = 3;
+  const [primitiveRoots, setPrimitiveRoots] = useState<number[]>([]);
+  const [discreteLogResult, setDiscreteLogResult] = useState<number | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   const handlePrimeSelect = (p: number) => {
     setPrime(p);
     setShowCommonPrimes(false);
+  };
+
+  const fetchPrimitiveRoots = async () => {
+    try {
+      const response = await fetch('http://127.0.0.1:5000/primitive-roots', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ prime }),
+      });
+      const data = await response.json();
+      if (data.error) {
+        setError(data.error);
+        setPrimitiveRoots([]);
+      } else {
+        setError(null);
+        setPrimitiveRoots([data.primitive_root]);
+      }
+    } catch (err) {
+      setError('Failed to fetch primitive roots');
+      setPrimitiveRoots([]);
+    }
+  };
+
+  const fetchDiscreteLog = async () => {
+    try {
+      const response = await fetch('http://127.0.0.1:5000/discrete-log', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ base, target, prime }),
+      });
+      const data = await response.json();
+      if (data.error) {
+        setError(data.error);
+        setDiscreteLogResult(null);
+      } else {
+        setError(null);
+        setDiscreteLogResult(data.discrete_log);
+      }
+    } catch (err) {
+      setError('Failed to fetch discrete logarithm');
+      setDiscreteLogResult(null);
+    }
   };
 
   return (
@@ -46,9 +90,9 @@ function App() {
                     <input
                       type="number"
                       value={prime}
-                      onChange={(e) => setPrime(Math.max(2, parseInt(e.target.value) || 2))}
+                      onChange={(e) => setPrime(Math.max(2, parseInt(e.target.value)))}
                       className={`w-full px-4 py-2 bg-gray-700 border rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-white ${
-                        primeValid ? 'border-green-500' : 'border-red-500'
+                        prime > 1 ? 'border-green-500' : 'border-red-500'
                       }`}
                     />
                   </div>
@@ -76,8 +120,8 @@ function App() {
                   </div>
                 )}
               </div>
-              <div className={`flex items-center gap-2 ${primeValid ? 'text-green-400' : 'text-red-400'}`}>
-                {primeValid ? (
+              <div className={`flex items-center gap-2 ${prime > 1 ? 'text-green-400' : 'text-red-400'}`}>
+                {prime > 1 ? (
                   <>
                     <CheckCircle2 className="w-5 h-5" />
                     <span>Valid prime number</span>
@@ -89,6 +133,12 @@ function App() {
                   </>
                 )}
               </div>
+              <button
+                onClick={fetchPrimitiveRoots}
+                className="mt-4 px-4 py-2 bg-purple-900 text-purple-100 rounded-md hover:bg-purple-800"
+              >
+                Find Primitive Roots
+              </button>
             </div>
 
             {/* Primitive Roots Section */}
@@ -98,7 +148,7 @@ function App() {
               </h2>
               <div className="bg-gray-700 rounded-lg p-4 shadow-sm">
                 <h3 className="text-sm font-medium text-gray-300 mb-2">
-                  First 5 Primitive Roots modulo {prime}:
+                  Primitive Root modulo {prime}:
                 </h3>
                 <div className="text-lg font-mono text-purple-300">
                   {primitiveRoots.length > 0 
@@ -137,6 +187,12 @@ function App() {
                   />
                 </div>
               </div>
+              <button
+                onClick={fetchDiscreteLog}
+                className="mb-4 px-4 py-2 bg-purple-900 text-purple-100 rounded-md hover:bg-purple-800"
+              >
+                Calculate Discrete Logarithm
+              </button>
               <div className="bg-gray-700 rounded-lg p-4 shadow-sm">
                 <h3 className="text-sm font-medium text-gray-300 mb-2">
                   Find x where: {base}<sup>x</sup> ≡ {target} (mod {prime})
