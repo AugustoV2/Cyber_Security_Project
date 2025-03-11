@@ -20,7 +20,7 @@ function App() {
 
   const fetchPrimitiveRoots = async () => {
     try {
-      const response = await fetch('http://127.0.0.1:5000/primitive-roots', {
+      const response = await fetch('https://nnr0wds4-5000.inc1.devtunnels.ms/primitive-roots', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -43,7 +43,7 @@ function App() {
 
   const fetchDiscreteLog = async () => {
     try {
-      const response = await fetch('http://127.0.0.1:5000/discrete-log', {
+      const response = await fetch('https://nnr0wds4-5000.inc1.devtunnels.ms/discrete-log', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
